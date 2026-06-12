@@ -103,7 +103,7 @@ import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
-const API_URL = 'http://127.0.0.1:8000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'https://agr-platform-backend-2.onrender.com/api'
 
 const modulos = ref([])
 const loading = ref(false)
