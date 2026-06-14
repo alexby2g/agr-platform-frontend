@@ -94,6 +94,11 @@ const routes = [
   },
 
   {
+    path: '/acceso-denegado',
+    component: () => import('@/pages/AccesoDenegadoPage.vue')
+  },
+  
+  {
     path: '/:catchAll(.*)*',
     component: () => import('@/pages/ErrorNotFound.vue')
   }

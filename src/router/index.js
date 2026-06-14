@@ -32,7 +32,7 @@ export default defineRouter(() => {
       )
 
       if (!permitido) {
-        return next('/')
+        return next('/acceso-denegado')
       }
     }
 
@@ -42,7 +42,7 @@ export default defineRouter(() => {
       )
 
       if (!permitido) {
-        return next('/')
+        return next('/acceso-denegado')
       }
     }
 
@@ -52,7 +52,7 @@ export default defineRouter(() => {
       )
 
       if (!permitido) {
-        return next('/')
+        return next('/acceso-denegado')
       }
     }
 
