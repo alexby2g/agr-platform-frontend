@@ -158,7 +158,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useQuasar, Dialog } from 'quasar'
+import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 
@@ -409,40 +409,39 @@ async function eliminarUsuario(usuario) {
     return
   }
 
-  $q.dialog({
-    title: 'Confirmar eliminación',
-    message: `¿Eliminar a ${usuario.nombre}?`,
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      const response = await fetch(`${API_URL}/usuarios-sistema/${usuario.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          Accept: 'application/json'
-        }
-      })
+  const confirmado = window.confirm(`¿Eliminar a ${usuario.nombre}?`)
 
-      const data = await response.json().catch(() => ({}))
+  if (!confirmado) {
+    return
+  }
 
-      if (!response.ok) {
-        throw new Error(getErrorMessage(data, 'No se pudo eliminar el usuario'))
+  try {
+    const response = await fetch(`${API_URL}/usuarios-sistema/${usuario.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        Accept: 'application/json'
       }
+    })
 
-      $q.notify({
-        type: 'positive',
-        message: 'Usuario eliminado correctamente'
-      })
+    const data = await response.json().catch(() => ({}))
 
-      await cargarUsuarios()
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: error.message
-      })
+    if (!response.ok) {
+      throw new Error(getErrorMessage(data, 'No se pudo eliminar el usuario'))
     }
-  })
+
+    $q.notify({
+      type: 'positive',
+      message: 'Usuario eliminado correctamente'
+    })
+
+    await cargarUsuarios()
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.message
+    })
+  }
 }
 
 onMounted(() => {
