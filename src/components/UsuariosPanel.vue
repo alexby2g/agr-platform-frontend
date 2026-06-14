@@ -409,7 +409,7 @@ async function eliminarUsuario(usuario) {
     return
   }
 
-  Dialog.create({
+  $q.dialog({
     title: 'Confirmar eliminación',
     message: `¿Eliminar a ${usuario.nombre}?`,
     cancel: true,
