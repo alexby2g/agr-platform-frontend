@@ -3,7 +3,7 @@
     <div class="panel-header">
       <div>
         <h2>Usuarios</h2>
-        <p>Administra los usuarios del sistema</p>
+        <p>Administra los usuarios del sistema con roles claros: super admin, administrador y empleado.</p>
       </div>
 
       <q-btn
@@ -23,6 +23,18 @@
         dark
         :loading="loading"
       >
+        <template #body-cell-rol="props">
+          <q-td :props="props">
+            <q-chip
+              :color="rolColor(props.row.rol)"
+              text-color="white"
+              dense
+            >
+              {{ rolLabel(props.row.rol) }}
+            </q-chip>
+          </q-td>
+        </template>
+
         <template #body-cell-activo="props">
           <q-td :props="props">
             <q-chip
@@ -50,6 +62,7 @@
               dense
               icon="delete"
               color="negative"
+              :disable="props.row.rol === 'super_admin'"
               @click="eliminarUsuario(props.row)"
             />
           </q-td>
@@ -59,17 +72,15 @@
 
     <q-dialog v-model="dialogo">
       <q-card class="dialog-card">
-
         <q-card-section>
           <div class="text-h6">
-            {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
+            {{ editando ? 'Editar usuario' : 'Nuevo usuario' }}
           </div>
         </q-card-section>
 
         <q-card-section>
-
           <q-input
-            v-model="form.nombre"
+            v-model.trim="form.nombre"
             label="Nombre"
             outlined
             dark
@@ -77,7 +88,7 @@
           />
 
           <q-input
-            v-model="form.usuario"
+            v-model.trim="form.usuario"
             label="Usuario"
             outlined
             dark
@@ -85,8 +96,9 @@
           />
 
           <q-input
-            v-model="form.email"
+            v-model.trim="form.email"
             label="Email"
+            type="email"
             outlined
             dark
             class="q-mb-md"
@@ -94,7 +106,7 @@
 
           <q-input
             v-model="form.password"
-            label="Contraseña"
+            :label="editando ? 'Nueva contraseña (opcional)' : 'Contraseña'"
             type="password"
             outlined
             dark
@@ -107,15 +119,19 @@
             label="Rol"
             outlined
             dark
+            emit-value
+            map-options
             class="q-mb-md"
           />
 
           <q-input
-            v-model="form.empresa_id"
+            v-model.number="form.empresa_id"
             label="Empresa ID"
+            type="number"
             outlined
             dark
             class="q-mb-md"
+            hint="Déjalo vacío para super_admin. Para administrador/empleado coloca la empresa correspondiente."
           />
 
           <q-toggle
@@ -123,7 +139,6 @@
             label="Usuario activo"
             color="positive"
           />
-
         </q-card-section>
 
         <q-card-actions align="right">
@@ -132,11 +147,10 @@
             label="Guardar"
             icon="save"
             class="btn-primary"
-            @click="guardarUsuario"
             :loading="guardando"
+            @click="guardarUsuario"
           />
         </q-card-actions>
-
       </q-card>
     </q-dialog>
   </div>
@@ -144,7 +158,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
+import { useQuasar, Dialog } from 'quasar'
 
 const $q = useQuasar()
 
@@ -159,61 +173,118 @@ const editando = ref(false)
 const usuarioId = ref(null)
 
 const roles = [
-  'super_admin',
-  'admin_empresa',
-  'usuario'
+  {
+    label: 'Super administrador',
+    value: 'super_admin'
+  },
+  {
+    label: 'Administrador',
+    value: 'administrador'
+  },
+  {
+    label: 'Empleado',
+    value: 'empleado'
+  }
 ]
 
-const form = ref({
-  nombre: '',
-  usuario: '',
-  email: '',
-  password: '',
-  rol: 'usuario',
-  empresa_id: null,
-  activo: true
-})
+const form = ref(formVacio())
 
 const columns = [
   {
     name: 'id',
     label: 'ID',
-    field: 'id'
+    field: 'id',
+    align: 'left',
+    sortable: true
   },
   {
     name: 'nombre',
     label: 'Nombre',
-    field: 'nombre'
+    field: 'nombre',
+    align: 'left',
+    sortable: true
   },
   {
     name: 'usuario',
     label: 'Usuario',
-    field: 'usuario'
+    field: 'usuario',
+    align: 'left',
+    sortable: true
   },
   {
     name: 'email',
     label: 'Email',
-    field: 'email'
+    field: 'email',
+    align: 'left',
+    sortable: true
   },
   {
     name: 'rol',
     label: 'Rol',
-    field: 'rol'
+    field: 'rol',
+    align: 'center',
+    sortable: true
   },
   {
     name: 'activo',
     label: 'Estado',
-    field: 'activo'
+    field: 'activo',
+    align: 'center',
+    sortable: true
   },
   {
     name: 'acciones',
     label: 'Acciones',
-    field: 'acciones'
+    field: 'acciones',
+    align: 'center'
   }
 ]
 
+function formVacio() {
+  return {
+    nombre: '',
+    usuario: '',
+    email: '',
+    password: '',
+    rol: 'empleado',
+    empresa_id: null,
+    activo: true
+  }
+}
+
+function normalizarRol(rol) {
+  if (rol === 'admin_empresa') return 'administrador'
+  if (rol === 'usuario') return 'empleado'
+
+  return rol || 'empleado'
+}
+
+function rolLabel(rol) {
+  const value = normalizarRol(rol)
+  const found = roles.find((item) => item.value === value)
+
+  return found?.label || 'Empleado'
+}
+
+function rolColor(rol) {
+  const value = normalizarRol(rol)
+
+  if (value === 'super_admin') return 'deep-purple'
+  if (value === 'administrador') return 'primary'
+
+  return 'teal'
+}
+
 function getToken() {
   return localStorage.getItem('agr_token')
+}
+
+function getErrorMessage(data, fallback = 'Ocurrió un error') {
+  if (data?.errors) {
+    return Object.values(data.errors).flat().join(' ')
+  }
+
+  return data?.message || fallback
 }
 
 async function cargarUsuarios() {
@@ -227,9 +298,25 @@ async function cargarUsuarios() {
       }
     })
 
-    usuarios.value = await response.json()
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(getErrorMessage(data, 'No se pudieron cargar los usuarios'))
+    }
+
+    usuarios.value = Array.isArray(data)
+      ? data.map((usuario) => ({
+        ...usuario,
+        rol: normalizarRol(usuario.rol)
+      }))
+      : []
   } catch (error) {
     console.error(error)
+
+    $q.notify({
+      type: 'negative',
+      message: error.message
+    })
   } finally {
     loading.value = false
   }
@@ -237,44 +324,40 @@ async function cargarUsuarios() {
 
 function abrirDialogo(usuario = null) {
   if (usuario) {
-
     editando.value = true
     usuarioId.value = usuario.id
 
     form.value = {
-      nombre: usuario.nombre,
-      usuario: usuario.usuario,
-      email: usuario.email,
+      nombre: usuario.nombre || '',
+      usuario: usuario.usuario || '',
+      email: usuario.email || '',
       password: '',
-      rol: usuario.rol,
-      empresa_id: usuario.empresa_id,
-      activo: usuario.activo
+      rol: normalizarRol(usuario.rol),
+      empresa_id: usuario.empresa_id || null,
+      activo: Boolean(usuario.activo)
     }
-
   } else {
-
     editando.value = false
     usuarioId.value = null
-
-    form.value = {
-      nombre: '',
-      usuario: '',
-      email: '',
-      password: '',
-      rol: 'usuario',
-      empresa_id: null,
-      activo: true
-    }
+    form.value = formVacio()
   }
 
   dialogo.value = true
 }
 
 async function guardarUsuario() {
-
   guardando.value = true
 
   try {
+    const payload = {
+      ...form.value,
+      rol: normalizarRol(form.value.rol),
+      empresa_id: form.value.empresa_id || null
+    }
+
+    if (editando.value && !payload.password) {
+      delete payload.password
+    }
 
     const url = editando.value
       ? `${API_URL}/usuarios-sistema/${usuarioId.value}`
@@ -291,13 +374,13 @@ async function guardarUsuario() {
         Accept: 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(payload)
     })
 
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error')
+      throw new Error(getErrorMessage(data, 'No se pudo guardar el usuario'))
     }
 
     $q.notify({
@@ -306,44 +389,60 @@ async function guardarUsuario() {
     })
 
     dialogo.value = false
-
-    cargarUsuarios()
-
+    await cargarUsuarios()
   } catch (error) {
-
     $q.notify({
       type: 'negative',
       message: error.message
     })
-
   } finally {
     guardando.value = false
   }
 }
 
 async function eliminarUsuario(usuario) {
-
-  if (!confirm(`Eliminar ${usuario.nombre}?`)) {
+  if (usuario.rol === 'super_admin') {
+    $q.notify({
+      type: 'warning',
+      message: 'No puedes eliminar un super administrador'
+    })
     return
   }
 
-  try {
-
-    await fetch(
-      `${API_URL}/usuarios-sistema/${usuario.id}`,
-      {
+  Dialog.create({
+    title: 'Confirmar eliminación',
+    message: `¿Eliminar a ${usuario.nombre}?`,
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    try {
+      const response = await fetch(`${API_URL}/usuarios-sistema/${usuario.id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${getToken()}`
+          Authorization: `Bearer ${getToken()}`,
+          Accept: 'application/json'
         }
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(data, 'No se pudo eliminar el usuario'))
       }
-    )
 
-    cargarUsuarios()
+      $q.notify({
+        type: 'positive',
+        message: 'Usuario eliminado correctamente'
+      })
 
-  } catch (error) {
-    console.error(error)
-  }
+      await cargarUsuarios()
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.message
+      })
+    }
+  })
 }
 
 onMounted(() => {
