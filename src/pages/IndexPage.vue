@@ -443,8 +443,29 @@ async function cargarSaasDashboard() {
   }
 }
 
+function rutaInternaModulo(modulo) {
+  const ruta = String(modulo?.ruta_frontend || '').trim()
+  const slug = String(modulo?.slug || '').trim().toLowerCase()
+
+  if (slug === 'aurea' && (ruta === '/apps/aurea' || ruta === '')) {
+    return '/apps/aurea/dashboard'
+  }
+
+  if (slug === 'carlafit' && (ruta === '/apps/carlafit' || ruta === '')) {
+    return '/apps/carlafit'
+  }
+
+  if (slug === 'electrofrio' && (ruta === '/apps/electrofrio' || ruta === '')) {
+    return '/apps/electrofrio'
+  }
+
+  return ruta
+}
+
 function abrirModulo(modulo) {
-  if (!modulo.ruta_frontend) {
+  const ruta = rutaInternaModulo(modulo)
+
+  if (!ruta) {
     Notify.create({
       type: 'warning',
       message: 'Este módulo no tiene una ruta asignada'
@@ -452,9 +473,13 @@ function abrirModulo(modulo) {
     return
   }
 
-  router.push(modulo.ruta_frontend)
-}
+  if (ruta.startsWith('http://') || ruta.startsWith('https://')) {
+    window.open(ruta, '_blank', 'noopener,noreferrer')
+    return
+  }
 
+  router.push(ruta)
+}
 async function logout() {
   try {
     await fetch(`${API_URL}/logout`, {

@@ -1,112 +1,100 @@
 <template>
-  <q-page class="aurea-page">
-    <div class="aurea-main-header">
-      <div>
-        <h1>💄 AUREA Beauty</h1>
-        <p>Panel principal del salón de belleza</p>
-      </div>
+  <q-page class="aurea-loading-page">
+    <q-card class="aurea-loading-card">
+      <div class="aurea-logo">A</div>
 
-      <q-btn label="Volver a AGR" icon="arrow_back" class="btn-back" to="/" />
-    </div>
+      <h1>Abriendo AUREA Beauty</h1>
 
-    <div class="cards-grid">
-      <q-card v-for="card in cards" :key="card.title" class="stat-card" @click="ir(card.to)">
-        <q-icon :name="card.icon" size="42px" />
-        <div>
-          <h3>{{ card.title }}</h3>
-          <p>{{ card.text }}</p>
-        </div>
-      </q-card>
-    </div>
+      <p>
+        Estamos cargando el panel principal del salón desde AGR Platform.
+      </p>
+
+      <q-spinner-dots color="pink" size="46px" class="q-my-md" />
+
+      <q-btn
+        label="Ir al dashboard ahora"
+        icon="dashboard"
+        class="aurea-btn"
+        no-caps
+        @click="irDashboard"
+      />
+    </q-card>
   </q-page>
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const cards = [
-  { title: 'Dashboard', text: 'Resumen general del salón', icon: 'dashboard', to: '/apps/aurea/dashboard' },
-  { title: 'Clientes', text: 'Gestión de clientes', icon: 'groups', to: '/apps/aurea/clientes' },
-  { title: 'Citas', text: 'Agenda del salón', icon: 'event', to: '/apps/aurea/citas' },
-  { title: 'Pagos', text: 'Ingresos y facturación', icon: 'payments', to: '/apps/aurea/pagos' },
-  { title: 'Servicios', text: 'Tratamientos disponibles', icon: 'spa', to: '/apps/aurea/servicios' },
-  { title: 'Calendario', text: 'Vista mensual de reservas', icon: 'calendar_month', to: '/apps/aurea/calendario' }
-]
-
-function ir(ruta) {
-  router.push(ruta)
+function irDashboard() {
+  router.replace('/apps/aurea/dashboard')
 }
+
+onMounted(() => {
+  window.setTimeout(() => {
+    irDashboard()
+  }, 450)
+})
 </script>
 
 <style scoped>
-.aurea-page {
+.aurea-loading-page {
   min-height: 100vh;
-  padding: 32px;
-  background:
-    radial-gradient(circle at top left, rgba(236, 72, 153, 0.30), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.25), transparent 35%),
-    #160818;
-  color: white;
-}
-
-.aurea-main-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-}
-
-.aurea-main-header h1 {
-  margin: 0;
-  font-size: 48px;
-  font-weight: 900;
-}
-
-.aurea-main-header p {
-  opacity: 0.75;
-}
-
-.btn-back {
-  background: white;
-  color: #be185d;
-  border-radius: 14px;
-  font-weight: 800;
-}
-
-.cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 22px;
-}
-
-.stat-card {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  padding: 26px;
-  border-radius: 24px;
+  place-items: center;
+  padding: 28px;
   color: white;
-  background: rgba(88, 28, 135, 0.55);
+  background:
+    radial-gradient(circle at top left, rgba(236, 72, 153, 0.35), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.28), transparent 35%),
+    #160818;
+}
+
+.aurea-loading-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 42px 34px;
+  text-align: center;
+  border-radius: 30px;
+  color: white;
+  background: rgba(24, 12, 32, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  cursor: pointer;
-  transition: 0.25s ease;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
 }
 
-.stat-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.35);
+.aurea-logo {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #ec4899, #7c3aed);
+  font-size: 42px;
+  font-weight: 950;
 }
 
-.stat-card h3 {
+.aurea-loading-card h1 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 34px;
+  font-weight: 950;
 }
 
-.stat-card p {
-  margin: 4px 0 0;
-  opacity: 0.7;
+.aurea-loading-card p {
+  max-width: 390px;
+  margin: 12px auto 10px;
+  opacity: 0.78;
+  line-height: 1.6;
+}
+
+.aurea-btn {
+  min-width: 220px;
+  height: 48px;
+  color: white;
+  border-radius: 14px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ec4899, #7c3aed);
 }
 </style>
