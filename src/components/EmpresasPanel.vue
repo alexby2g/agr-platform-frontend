@@ -3,7 +3,7 @@
     <div class="panel-header">
       <div>
         <h2>Empresas</h2>
-        <p>Administra los clientes de AGR Studio Platform</p>
+        <p>Administra clientes, identidad visual, plan y estado de cada empresa.</p>
       </div>
 
       <q-btn
@@ -23,6 +23,42 @@
         dark
         :loading="loading"
       >
+        <template #body-cell-identidad="props">
+          <q-td :props="props">
+            <div class="empresa-identidad">
+              <q-avatar size="42px" class="empresa-avatar">
+                <img v-if="props.row.logo" :src="props.row.logo" />
+                <span v-else>{{ iniciales(props.row.nombre) }}</span>
+              </q-avatar>
+
+              <div>
+                <div class="empresa-nombre">{{ props.row.nombre }}</div>
+                <div class="empresa-slug">{{ props.row.slug }}</div>
+              </div>
+            </div>
+          </q-td>
+        </template>
+
+        <template #body-cell-plan="props">
+          <q-td :props="props">
+            <q-chip
+              :color="planColor(props.row.plan)"
+              text-color="white"
+              dense
+            >
+              {{ planLabel(props.row.plan) }}
+            </q-chip>
+          </q-td>
+        </template>
+
+        <template #body-cell-vencimiento="props">
+          <q-td :props="props">
+            <span :class="{ vencido: estaVencida(props.row.fecha_vencimiento) }">
+              {{ props.row.fecha_vencimiento || 'Sin fecha' }}
+            </span>
+          </q-td>
+        </template>
+
         <template #body-cell-activo="props">
           <q-td :props="props">
             <q-chip
@@ -62,15 +98,90 @@
         </q-card-section>
 
         <q-card-section>
-          <q-input v-model="form.nombre" label="Nombre" dark outlined class="q-mb-md" />
-          <q-input v-model="form.slug" label="Slug" dark outlined class="q-mb-md" />
+          <div class="preview-card" :style="previewStyle">
+            <q-avatar size="66px" class="preview-avatar">
+              <img v-if="form.logo" :src="form.logo" />
+              <span v-else>{{ iniciales(form.nombre || 'AGR') }}</span>
+            </q-avatar>
+
+            <div>
+              <div class="preview-title">{{ form.nombre || 'Nombre de empresa' }}</div>
+              <div class="preview-subtitle">{{ form.slug || 'slug-empresa' }}</div>
+              <q-chip size="sm" color="white" text-color="dark">
+                {{ planLabel(form.plan) }}
+              </q-chip>
+            </div>
+          </div>
+
+          <q-input
+            v-model.trim="form.nombre"
+            label="Nombre"
+            dark
+            outlined
+            class="q-mb-md"
+            @update:model-value="autogenerarSlug"
+          />
+
+          <q-input
+            v-model.trim="form.slug"
+            label="Slug"
+            dark
+            outlined
+            class="q-mb-md"
+          />
+
+          <q-input
+            v-model.trim="form.logo"
+            label="URL del logo"
+            dark
+            outlined
+            class="q-mb-md"
+            hint="Opcional. Puedes pegar una URL de imagen."
+          />
+
+          <div class="row q-col-gutter-md q-mb-md">
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.color_primario"
+                label="Color primario"
+                type="color"
+                dark
+                outlined
+              />
+            </div>
+
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.color_secundario"
+                label="Color secundario"
+                type="color"
+                dark
+                outlined
+              />
+            </div>
+          </div>
 
           <div class="row q-col-gutter-md">
-            <div class="col-6">
-              <q-input v-model="form.color_primario" label="Color primario" dark outlined />
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.plan"
+                :options="planes"
+                label="Plan"
+                dark
+                outlined
+                emit-value
+                map-options
+              />
             </div>
-            <div class="col-6">
-              <q-input v-model="form.color_secundario" label="Color secundario" dark outlined />
+
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.fecha_vencimiento"
+                label="Fecha de vencimiento"
+                type="date"
+                dark
+                outlined
+              />
             </div>
           </div>
 
@@ -98,7 +209,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -111,25 +222,82 @@ const dialogo = ref(false)
 const editando = ref(false)
 const empresaId = ref(null)
 
-const form = ref({
-  nombre: '',
-  slug: '',
-  color_primario: '#4f46e5',
-  color_secundario: '#9333ea',
-  activo: true
-})
+const planes = [
+  { label: 'Básico', value: 'basico' },
+  { label: 'Profesional', value: 'profesional' },
+  { label: 'Empresarial', value: 'empresarial' }
+]
+
+const form = ref(formVacio())
+
+const previewStyle = computed(() => ({
+  background: `linear-gradient(135deg, ${form.value.color_primario || '#ec4899'}, ${form.value.color_secundario || '#9333ea'})`
+}))
 
 const columns = [
   { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left' },
-  { name: 'slug', label: 'Slug', field: 'slug', align: 'left' },
+  { name: 'identidad', label: 'Empresa', field: 'nombre', align: 'left' },
+  { name: 'plan', label: 'Plan', field: 'plan', align: 'center' },
+  { name: 'vencimiento', label: 'Vence', field: 'fecha_vencimiento', align: 'center' },
   { name: 'colores', label: 'Colores', field: 'colores', align: 'center' },
   { name: 'activo', label: 'Estado', field: 'activo', align: 'center' },
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' }
 ]
 
+function formVacio() {
+  return {
+    nombre: '',
+    slug: '',
+    logo: '',
+    color_primario: '#ec4899',
+    color_secundario: '#9333ea',
+    plan: 'basico',
+    fecha_vencimiento: '',
+    activo: true
+  }
+}
+
 function token() {
   return localStorage.getItem('agr_token')
+}
+
+function getErrorMessage(data, fallback = 'Ocurrió un error') {
+  if (data?.errors) {
+    return Object.values(data.errors).flat().join(' ')
+  }
+
+  return data?.message || fallback
+}
+
+function iniciales(nombre = '') {
+  return nombre
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) => item[0]?.toUpperCase())
+    .join('') || 'A'
+}
+
+function planLabel(plan) {
+  return planes.find((item) => item.value === plan)?.label || 'Básico'
+}
+
+function planColor(plan) {
+  if (plan === 'empresarial') return 'deep-purple'
+  if (plan === 'profesional') return 'primary'
+  return 'teal'
+}
+
+function estaVencida(fecha) {
+  if (!fecha) return false
+
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+
+  const vencimiento = new Date(fecha)
+  vencimiento.setHours(0, 0, 0, 0)
+
+  return vencimiento < hoy
 }
 
 async function cargarEmpresas() {
@@ -146,10 +314,10 @@ async function cargarEmpresas() {
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error('No se pudieron cargar las empresas')
+      throw new Error(getErrorMessage(data, 'No se pudieron cargar las empresas'))
     }
 
-    empresas.value = data
+    empresas.value = Array.isArray(data) ? data : data.data || []
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -161,7 +329,7 @@ async function cargarEmpresas() {
 }
 
 function generarSlug(texto) {
-  return texto
+  return String(texto || '')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -170,27 +338,31 @@ function generarSlug(texto) {
     .replace(/(^-|-$)/g, '')
 }
 
+function autogenerarSlug() {
+  if (!editando.value && form.value.nombre) {
+    form.value.slug = generarSlug(form.value.nombre)
+  }
+}
+
 function abrirDialogo(empresa = null) {
   if (empresa) {
     editando.value = true
     empresaId.value = empresa.id
+
     form.value = {
-      nombre: empresa.nombre,
-      slug: empresa.slug,
-      color_primario: empresa.color_primario || '#4f46e5',
+      nombre: empresa.nombre || '',
+      slug: empresa.slug || '',
+      logo: empresa.logo || '',
+      color_primario: empresa.color_primario || '#ec4899',
       color_secundario: empresa.color_secundario || '#9333ea',
+      plan: empresa.plan || 'basico',
+      fecha_vencimiento: empresa.fecha_vencimiento || '',
       activo: Boolean(empresa.activo)
     }
   } else {
     editando.value = false
     empresaId.value = null
-    form.value = {
-      nombre: '',
-      slug: '',
-      color_primario: '#4f46e5',
-      color_secundario: '#9333ea',
-      activo: true
-    }
+    form.value = formVacio()
   }
 
   dialogo.value = true
@@ -209,6 +381,12 @@ async function guardarEmpresa() {
   guardando.value = true
 
   try {
+    const payload = {
+      ...form.value,
+      logo: form.value.logo || null,
+      fecha_vencimiento: form.value.fecha_vencimiento || null
+    }
+
     const url = editando.value
       ? `${API_URL}/empresas/${empresaId.value}`
       : `${API_URL}/empresas`
@@ -222,18 +400,18 @@ async function guardarEmpresa() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token()}`
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(payload)
     })
 
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'No se pudo guardar')
+      throw new Error(getErrorMessage(data, 'No se pudo guardar la empresa'))
     }
 
     $q.notify({
       type: 'positive',
-      message: data.message
+      message: data.message || 'Empresa guardada correctamente'
     })
 
     dialogo.value = false
@@ -249,7 +427,7 @@ async function guardarEmpresa() {
 }
 
 async function eliminarEmpresa(empresa) {
-  const confirmar = confirm(`¿Eliminar la empresa ${empresa.nombre}?`)
+  const confirmar = window.confirm(`¿Eliminar la empresa ${empresa.nombre}?`)
 
   if (!confirmar) return
 
@@ -262,15 +440,15 @@ async function eliminarEmpresa(empresa) {
       }
     })
 
-    const data = await response.json()
+    const data = await response.json().catch(() => ({}))
 
     if (!response.ok) {
-      throw new Error(data.message || 'No se pudo eliminar')
+      throw new Error(getErrorMessage(data, 'No se pudo eliminar la empresa'))
     }
 
     $q.notify({
       type: 'positive',
-      message: data.message
+      message: data.message || 'Empresa eliminada correctamente'
     })
 
     await cargarEmpresas()
@@ -296,6 +474,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   margin-bottom: 18px;
 }
 
@@ -319,7 +498,7 @@ onMounted(() => {
 }
 
 .dialog-card {
-  width: 520px;
+  width: 680px;
   max-width: 95vw;
 }
 
@@ -328,6 +507,28 @@ onMounted(() => {
   color: white;
   border-radius: 12px;
   font-weight: 700;
+}
+
+.empresa-identidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empresa-avatar,
+.preview-avatar {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: white;
+  font-weight: 900;
+}
+
+.empresa-nombre {
+  font-weight: 900;
+}
+
+.empresa-slug {
+  opacity: 0.6;
+  font-size: 12px;
 }
 
 .colors {
@@ -342,5 +543,39 @@ onMounted(() => {
   border-radius: 50%;
   display: block;
   border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.preview-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 130px;
+  padding: 22px;
+  border-radius: 22px;
+  margin-bottom: 20px;
+  color: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+.preview-title {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.preview-subtitle {
+  opacity: 0.78;
+  margin-bottom: 8px;
+}
+
+.vencido {
+  color: #f87171;
+  font-weight: 900;
+}
+
+@media (max-width: 680px) {
+  .panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 </style>
