@@ -167,8 +167,13 @@ async function cargarLauncher() {
 
     usuario.value = data.usuario
     modulos.value = data.modulos
+      localStorage.setItem(
+    'agr_modulos',
+    JSON.stringify(data.modulos)
+  )
   } catch (error) {
     localStorage.removeItem('agr_token')
+    localStorage.removeItem('agr_modulos')
     token.value = null
 
     Notify.create({
