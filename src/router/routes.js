@@ -63,6 +63,10 @@ const routes = [
         component: () => import('@/pages/apps/aurea/CalendarioPage.vue')
       },
       {
+        path: 'usuarios',
+        component: () => import('@/pages/apps/aurea/UsuariosEmpresaPage.vue')
+      },
+      {
         path: 'empleados',
         component: () => import('@/pages/apps/aurea/EmpleadosPage.vue')
       },

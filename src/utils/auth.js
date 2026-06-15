@@ -19,6 +19,7 @@ const EMPLEADO_AUREA_PERMISOS = [
 
 const AUREA_ROUTE_PERMISSIONS = [
   { startsWith: '/apps/aurea/configuracion', permiso: 'aurea.configuracion.ver' },
+  { startsWith: '/apps/aurea/usuarios', permiso: 'aurea.usuarios.ver' },
   { startsWith: '/apps/aurea/empleados', permiso: 'aurea.empleados.ver' },
   { startsWith: '/apps/aurea/caja-diaria', permiso: 'aurea.caja.ver' },
   { startsWith: '/apps/aurea/historial-clientes', permiso: 'aurea.clientes.historial' },

@@ -10,6 +10,7 @@
         label="Nueva empresa"
         icon="add_business"
         class="btn-primary"
+        no-caps
         @click="abrirDialogo()"
       />
     </div>
@@ -21,7 +22,10 @@
         row-key="id"
         flat
         dark
+        :grid="$q.screen.lt.sm"
         :loading="loading"
+        :pagination="{ rowsPerPage: 5 }"
+        no-data-label="No hay empresas registradas."
       >
         <template #body-cell-identidad="props">
           <q-td :props="props">
@@ -41,11 +45,7 @@
 
         <template #body-cell-plan="props">
           <q-td :props="props">
-            <q-chip
-              :color="planColor(props.row.plan)"
-              text-color="white"
-              dense
-            >
+            <q-chip :color="planColor(props.row.plan)" text-color="white" dense>
               {{ planLabel(props.row.plan) }}
             </q-chip>
           </q-td>
@@ -54,18 +54,14 @@
         <template #body-cell-vencimiento="props">
           <q-td :props="props">
             <span :class="{ vencido: estaVencida(props.row.fecha_vencimiento) }">
-              {{ props.row.fecha_vencimiento || 'Sin fecha' }}
+              {{ formatearFecha(props.row.fecha_vencimiento) }}
             </span>
           </q-td>
         </template>
 
         <template #body-cell-activo="props">
           <q-td :props="props">
-            <q-chip
-              :color="props.row.activo ? 'positive' : 'negative'"
-              text-color="white"
-              dense
-            >
+            <q-chip :color="props.row.activo ? 'positive' : 'negative'" text-color="white" dense>
               {{ props.row.activo ? 'Activo' : 'Inactivo' }}
             </q-chip>
           </q-td>
@@ -74,17 +70,55 @@
         <template #body-cell-colores="props">
           <q-td :props="props">
             <div class="colors">
-              <span :style="{ background: props.row.color_primario }"></span>
-              <span :style="{ background: props.row.color_secundario }"></span>
+              <span :style="{ background: props.row.color_primario || '#ec4899' }"></span>
+              <span :style="{ background: props.row.color_secundario || '#9333ea' }"></span>
             </div>
           </q-td>
         </template>
 
         <template #body-cell-acciones="props">
-          <q-td :props="props">
+          <q-td :props="props" class="acciones-cell">
             <q-btn dense flat icon="edit" color="warning" @click="abrirDialogo(props.row)" />
             <q-btn dense flat icon="delete" color="negative" @click="eliminarEmpresa(props.row)" />
           </q-td>
+        </template>
+
+        <template #item="props">
+          <div class="q-pa-xs col-12">
+            <q-card class="empresa-mobile-card">
+              <div class="empresa-mobile-top">
+                <div class="empresa-identidad">
+                  <q-avatar size="46px" class="empresa-avatar">
+                    <img v-if="props.row.logo" :src="props.row.logo" />
+                    <span v-else>{{ iniciales(props.row.nombre) }}</span>
+                  </q-avatar>
+
+                  <div>
+                    <div class="empresa-nombre">{{ props.row.nombre }}</div>
+                    <div class="empresa-slug">{{ props.row.slug }}</div>
+                  </div>
+                </div>
+
+                <q-chip :color="props.row.activo ? 'positive' : 'negative'" text-color="white" dense>
+                  {{ props.row.activo ? 'Activo' : 'Inactivo' }}
+                </q-chip>
+              </div>
+
+              <div class="empresa-mobile-details">
+                <div><b>Plan:</b> {{ planLabel(props.row.plan) }}</div>
+                <div><b>Vence:</b> {{ formatearFecha(props.row.fecha_vencimiento) }}</div>
+                <div class="colors mobile-colors">
+                  <span :style="{ background: props.row.color_primario || '#ec4899' }"></span>
+                  <span :style="{ background: props.row.color_secundario || '#9333ea' }"></span>
+                </div>
+              </div>
+
+              <div class="empresa-mobile-actions">
+                <q-btn dense flat icon="edit" label="Editar" color="warning" no-caps @click="abrirDialogo(props.row)" />
+                <q-btn dense flat icon="delete" label="Eliminar" color="negative" no-caps @click="eliminarEmpresa(props.row)" />
+              </div>
+            </q-card>
+          </div>
         </template>
       </q-table>
     </q-card>
@@ -122,13 +156,7 @@
             @update:model-value="autogenerarSlug"
           />
 
-          <q-input
-            v-model.trim="form.slug"
-            label="Slug"
-            dark
-            outlined
-            class="q-mb-md"
-          />
+          <q-input v-model.trim="form.slug" label="Slug" dark outlined class="q-mb-md" />
 
           <q-input
             v-model.trim="form.logo"
@@ -136,28 +164,16 @@
             dark
             outlined
             class="q-mb-md"
-            hint="Opcional. Puedes pegar una URL de imagen."
+            hint="Opcional. Puedes pegar una URL directa de imagen."
           />
 
           <div class="row q-col-gutter-md q-mb-md">
             <div class="col-12 col-md-6">
-              <q-input
-                v-model="form.color_primario"
-                label="Color primario"
-                type="color"
-                dark
-                outlined
-              />
+              <q-input v-model="form.color_primario" label="Color primario" type="color" dark outlined />
             </div>
 
             <div class="col-12 col-md-6">
-              <q-input
-                v-model="form.color_secundario"
-                label="Color secundario"
-                type="color"
-                dark
-                outlined
-              />
+              <q-input v-model="form.color_secundario" label="Color secundario" type="color" dark outlined />
             </div>
           </div>
 
@@ -181,27 +197,17 @@
                 type="date"
                 dark
                 outlined
+                hint="Se mostrará como día/mes/año en la tabla."
               />
             </div>
           </div>
 
-          <q-toggle
-            v-model="form.activo"
-            label="Empresa activa"
-            color="positive"
-            class="q-mt-md"
-          />
+          <q-toggle v-model="form.activo" label="Empresa activa" color="positive" class="q-mt-md" />
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Cancelar" color="grey" v-close-popup />
-          <q-btn
-            label="Guardar"
-            icon="save"
-            class="btn-primary"
-            :loading="guardando"
-            @click="guardarEmpresa"
-          />
+          <q-btn label="Guardar" icon="save" class="btn-primary" :loading="guardando" @click="guardarEmpresa" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -235,12 +241,12 @@ const previewStyle = computed(() => ({
 }))
 
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'identidad', label: 'Empresa', field: 'nombre', align: 'left' },
-  { name: 'plan', label: 'Plan', field: 'plan', align: 'center' },
-  { name: 'vencimiento', label: 'Vence', field: 'fecha_vencimiento', align: 'center' },
+  { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
+  { name: 'identidad', label: 'Empresa', field: 'nombre', align: 'left', sortable: true },
+  { name: 'plan', label: 'Plan', field: 'plan', align: 'center', sortable: true },
+  { name: 'vencimiento', label: 'Vence', field: 'fecha_vencimiento', align: 'center', sortable: true },
   { name: 'colores', label: 'Colores', field: 'colores', align: 'center' },
-  { name: 'activo', label: 'Estado', field: 'activo', align: 'center' },
+  { name: 'activo', label: 'Estado', field: 'activo', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' }
 ]
 
@@ -269,6 +275,24 @@ function getErrorMessage(data, fallback = 'Ocurrió un error') {
   return data?.message || fallback
 }
 
+function normalizarFecha(fecha) {
+  if (!fecha) return ''
+
+  return String(fecha).split('T')[0]
+}
+
+function formatearFecha(fecha) {
+  const soloFecha = normalizarFecha(fecha)
+
+  if (!soloFecha) return 'Sin fecha'
+
+  const partes = soloFecha.split('-')
+
+  if (partes.length !== 3) return 'Sin fecha'
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`
+}
+
 function iniciales(nombre = '') {
   return nombre
     .split(' ')
@@ -289,12 +313,14 @@ function planColor(plan) {
 }
 
 function estaVencida(fecha) {
-  if (!fecha) return false
+  const soloFecha = normalizarFecha(fecha)
+
+  if (!soloFecha) return false
 
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)
 
-  const vencimiento = new Date(fecha)
+  const vencimiento = new Date(`${soloFecha}T00:00:00`)
   vencimiento.setHours(0, 0, 0, 0)
 
   return vencimiento < hoy
@@ -319,10 +345,7 @@ async function cargarEmpresas() {
 
     empresas.value = Array.isArray(data) ? data : data.data || []
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: error.message
-    })
+    $q.notify({ type: 'negative', message: error.message })
   } finally {
     loading.value = false
   }
@@ -356,7 +379,7 @@ function abrirDialogo(empresa = null) {
       color_primario: empresa.color_primario || '#ec4899',
       color_secundario: empresa.color_secundario || '#9333ea',
       plan: empresa.plan || 'basico',
-      fecha_vencimiento: empresa.fecha_vencimiento || '',
+      fecha_vencimiento: normalizarFecha(empresa.fecha_vencimiento),
       activo: Boolean(empresa.activo)
     }
   } else {
@@ -384,13 +407,10 @@ async function guardarEmpresa() {
     const payload = {
       ...form.value,
       logo: form.value.logo || null,
-      fecha_vencimiento: form.value.fecha_vencimiento || null
+      fecha_vencimiento: normalizarFecha(form.value.fecha_vencimiento) || null
     }
 
-    const url = editando.value
-      ? `${API_URL}/empresas/${empresaId.value}`
-      : `${API_URL}/empresas`
-
+    const url = editando.value ? `${API_URL}/empresas/${empresaId.value}` : `${API_URL}/empresas`
     const method = editando.value ? 'PUT' : 'POST'
 
     const response = await fetch(url, {
@@ -409,18 +429,12 @@ async function guardarEmpresa() {
       throw new Error(getErrorMessage(data, 'No se pudo guardar la empresa'))
     }
 
-    $q.notify({
-      type: 'positive',
-      message: data.message || 'Empresa guardada correctamente'
-    })
+    $q.notify({ type: 'positive', message: data.message || 'Empresa guardada correctamente' })
 
     dialogo.value = false
     await cargarEmpresas()
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: error.message
-    })
+    $q.notify({ type: 'negative', message: error.message })
   } finally {
     guardando.value = false
   }
@@ -446,17 +460,11 @@ async function eliminarEmpresa(empresa) {
       throw new Error(getErrorMessage(data, 'No se pudo eliminar la empresa'))
     }
 
-    $q.notify({
-      type: 'positive',
-      message: data.message || 'Empresa eliminada correctamente'
-    })
+    $q.notify({ type: 'positive', message: data.message || 'Empresa eliminada correctamente' })
 
     await cargarEmpresas()
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: error.message
-    })
+    $q.notify({ type: 'negative', message: error.message })
   }
 }
 
@@ -480,7 +488,7 @@ onMounted(() => {
 
 .panel-header h2 {
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(26px, 4vw, 32px);
   font-weight: 900;
 }
 
@@ -495,6 +503,7 @@ onMounted(() => {
   color: white;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
 }
 
 .dialog-card {
@@ -506,13 +515,14 @@ onMounted(() => {
   background: linear-gradient(135deg, #7c3aed, #2563eb);
   color: white;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .empresa-identidad {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .empresa-avatar,
@@ -572,10 +582,56 @@ onMounted(() => {
   font-weight: 900;
 }
 
+.empresa-mobile-card {
+  background: rgba(15, 23, 42, 0.94);
+  color: white;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 16px;
+}
+
+.empresa-mobile-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.empresa-mobile-details {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mobile-colors {
+  justify-content: flex-start;
+}
+
+.empresa-mobile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 @media (max-width: 680px) {
+  .empresas-panel {
+    margin-top: 28px;
+  }
+
   .panel-header {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .preview-card {
+    flex-direction: column;
+    text-align: center;
   }
 }
 </style>

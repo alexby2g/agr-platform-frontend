@@ -113,6 +113,7 @@ const menu = [
   { label: 'Servicios', icon: 'spa', to: '/apps/aurea/servicios', permiso: 'aurea.servicios.ver' },
   { label: 'Calendario', icon: 'calendar_month', to: '/apps/aurea/calendario', permiso: 'aurea.citas.ver' },
   { label: 'Mis citas', icon: 'today', to: '/apps/aurea/mis-citas', permiso: 'aurea.citas.ver' },
+  { label: 'Usuarios', icon: 'manage_accounts', to: '/apps/aurea/usuarios', permiso: 'aurea.usuarios.ver' },
   { label: 'Empleados', icon: 'badge', to: '/apps/aurea/empleados', permiso: 'aurea.empleados.ver' },
   { label: 'Caja diaria', icon: 'point_of_sale', to: '/apps/aurea/caja-diaria', permiso: 'aurea.caja.ver' },
   { label: 'Historial', icon: 'history', to: '/apps/aurea/historial', permiso: 'aurea.historial.ver' },
