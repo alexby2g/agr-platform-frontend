@@ -7,6 +7,7 @@ import {
 } from 'vue-router'
 
 import routes from './routes.js'
+import { getAgrModulos, getAgrToken, puedeEntrarRutaAurea } from '@/utils/auth.js'
 
 export default defineRouter(() => {
   const createHistory = import.meta.env.QUASAR_SERVER
@@ -22,24 +23,20 @@ export default defineRouter(() => {
   })
 
   Router.beforeEach((to, from, next) => {
-    const modulos = JSON.parse(
-      localStorage.getItem('agr_modulos') || '[]'
-    )
+    const modulos = getAgrModulos()
+
+    if (to.path.startsWith('/apps/') && (!getAgrToken() || modulos.length === 0)) {
+      return next('/')
+    }
 
     if (to.path.startsWith('/apps/aurea')) {
-      const permitido = modulos.some(
-        m => m.slug === 'aurea'
-      )
-
-      if (!permitido) {
+      if (!puedeEntrarRutaAurea(to.path)) {
         return next('/acceso-denegado')
       }
     }
 
     if (to.path.startsWith('/apps/carlafit')) {
-      const permitido = modulos.some(
-        m => m.slug === 'carlafit'
-      )
+      const permitido = modulos.some((m) => m.slug === 'carlafit')
 
       if (!permitido) {
         return next('/acceso-denegado')
@@ -47,9 +44,7 @@ export default defineRouter(() => {
     }
 
     if (to.path.startsWith('/apps/electrofrio')) {
-      const permitido = modulos.some(
-        m => m.slug === 'electrofrio'
-      )
+      const permitido = modulos.some((m) => m.slug === 'electrofrio')
 
       if (!permitido) {
         return next('/acceso-denegado')

@@ -36,7 +36,7 @@ const routes = [
     children: [
       {
         path: '',
-        component: () => import('@/pages/apps/AureaPage.vue')
+        redirect: '/apps/aurea/dashboard'
       },
       {
         path: 'dashboard',

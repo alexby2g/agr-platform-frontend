@@ -19,6 +19,7 @@
 
       <div class="hero-actions">
         <q-btn
+          v-if="puedeAurea('aurea.clientes.crear')"
           icon="contacts"
           label="Importar contactos"
           class="btn-white"
@@ -28,6 +29,7 @@
         />
 
         <q-btn
+          v-if="puedeAurea('aurea.clientes.crear')"
           icon="add"
           label="Nuevo Cliente"
           class="btn-white"
@@ -222,6 +224,7 @@
               </q-btn>
 
               <q-btn
+                v-if="puedeAurea('aurea.clientes.editar')"
                 icon="edit"
                 round
                 unelevated
@@ -233,6 +236,7 @@
               </q-btn>
 
               <q-btn
+                v-if="puedeAurea('aurea.clientes.eliminar')"
                 icon="delete"
                 round
                 unelevated
@@ -814,6 +818,7 @@ import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
 import { Capacitor } from '@capacitor/core'
 import { Contacts } from '@capacitor-community/contacts'
+import { puedeAurea } from '@/utils/auth.js'
 
 defineOptions({
   name: 'ClientesPage'

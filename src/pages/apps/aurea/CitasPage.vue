@@ -22,6 +22,7 @@
         />
 
         <q-btn
+          v-if="puedeAurea('aurea.citas.crear')"
           class="btn-glamur-white"
           label="Nueva Cita"
           icon="add"
@@ -174,6 +175,7 @@
 
           <div class="cita-mobile-actions">
             <q-btn
+              v-if="puedeAurea('aurea.citas.editar')"
               round
               unelevated
               size="sm"
@@ -183,7 +185,7 @@
             />
 
             <q-btn
-              v-if="cita.estado !== 'concluida'"
+              v-if="cita.estado !== 'concluida' && puedeAurea('aurea.citas.finalizar')"
               round
               unelevated
               size="sm"
@@ -193,7 +195,7 @@
             />
 
             <q-btn
-              v-if="cita.estado_pago !== 'pagado'"
+              v-if="cita.estado_pago !== 'pagado' && puedeAurea('aurea.pagos.crear')"
               round
               unelevated
               size="sm"
@@ -212,6 +214,7 @@
             />
 
             <q-btn
+              v-if="puedeAurea('aurea.citas.eliminar')"
               round
               unelevated
               size="sm"
@@ -345,6 +348,7 @@
           <div class="acciones">
 
             <q-btn
+              v-if="puedeAurea('aurea.citas.editar')"
               round
               unelevated
               size="sm"
@@ -356,7 +360,7 @@
             </q-btn>
 
             <q-btn
-              v-if="props.row.estado !== 'concluida'"
+              v-if="props.row.estado !== 'concluida' && puedeAurea('aurea.citas.finalizar')"
               round
               unelevated
               size="sm"
@@ -368,7 +372,7 @@
             </q-btn>
 
             <q-btn
-              v-if="props.row.estado_pago !== 'pagado'"
+              v-if="props.row.estado_pago !== 'pagado' && puedeAurea('aurea.pagos.crear')"
               round
               unelevated
               size="sm"
@@ -391,6 +395,7 @@
             </q-btn>
 
             <q-btn
+              v-if="puedeAurea('aurea.citas.eliminar')"
               round
               unelevated
               size="sm"
@@ -1105,6 +1110,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
+import { puedeAurea } from '@/utils/auth.js'
 
 defineOptions({
   name: 'CitasPage'

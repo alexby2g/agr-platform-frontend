@@ -363,6 +363,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
+import { getAgrUsuario, puedeAurea } from '@/utils/auth.js'
 
 defineOptions({
   name: 'ServiciosPage'
@@ -510,39 +511,19 @@ const form = ref({
   activo: true
 })
 
-const usuarioActual = computed(() => {
-  try {
-    if (typeof window === 'undefined') {
-      return null
-    }
-
-    const user = localStorage.getItem('glamur_user')
-
-    if (!user) {
-      return null
-    }
-
-    return JSON.parse(user)
-  } catch {
-    return null
-  }
-})
+const usuarioActual = computed(() => getAgrUsuario())
 
 const rolUsuario = computed(() => {
-  const rol = String(usuarioActual.value?.rol || 'admin').toLowerCase().trim()
+  const rol = String(usuarioActual.value?.rol || 'empleado').toLowerCase().trim()
 
-  if (rol === 'administrador') {
+  if (rol === 'super_admin' || rol === 'administrador') {
     return 'admin'
   }
 
-  if (rol === 'empleado') {
-    return 'empleado'
-  }
-
-  return 'admin'
+  return 'empleado'
 })
 
-const isAdmin = computed(() => rolUsuario.value === 'admin')
+const isAdmin = computed(() => puedeAurea('aurea.servicios.crear'))
 
 const columns = computed(() => {
   const baseColumns = [

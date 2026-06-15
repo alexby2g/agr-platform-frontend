@@ -134,3 +134,55 @@ body {
     border-radius: 22px;
   }
 }
+/* =========================
+   AGR PLATFORM RESPONSIVE POLISH
+========================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#q-app {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.q-page {
+  min-width: 0;
+}
+
+.q-table__container {
+  border-radius: 18px;
+}
+
+.q-table__middle {
+  max-width: 100%;
+}
+
+.q-dialog__inner--minimized > div {
+  max-width: min(92vw, 980px);
+}
+
+@media (max-width: 700px) {
+  .q-dialog__inner {
+    padding: 10px;
+  }
+
+  .q-card {
+    max-width: 100%;
+  }
+
+  .q-table__container {
+    font-size: 12px;
+  }
+
+  .q-btn .q-icon + span,
+  .q-btn span + .q-icon {
+    margin-left: 6px;
+  }
+}

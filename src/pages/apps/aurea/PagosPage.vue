@@ -456,6 +456,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
+import { puedeAurea } from '@/utils/auth.js'
 
 defineOptions({
   name: 'PagosPage'
